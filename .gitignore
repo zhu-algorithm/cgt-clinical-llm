@@ -1,0 +1,9 @@
+raw/
+data/
+*.jsonl
+*.jsonl.gz
+*.log
+__pycache__/
+.venv/
+*.pt
+*.safetensors
