@@ -19,8 +19,11 @@ for _k in ["all_proxy", "ALL_PROXY", "rsync_proxy", "RSYNC_PROXY", "ftp_proxy", 
 S3 = "https://pmc-oa-opendata.s3.amazonaws.com/"
 ESEARCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
 
-# licences that permit commercial reuse and derivatives
-OK_LICENCES = {"CC0", "CC BY", "CCBY", "CC-BY", "PUBLIC DOMAIN", "CC BY-SA", "CC-BY-SA"}
+# Licences that permit commercial reuse and derivatives WITHOUT a share-alike
+# obligation. Share-alike (CC-BY-SA) is deliberately excluded: its copyleft
+# term could be read to reach model weights trained on the text, which is an
+# unsettled question we do not want in a commercial product's provenance chain.
+OK_LICENCES = {"CC0", "CC BY", "CCBY", "CC-BY", "PUBLIC DOMAIN"}
 
 TOPICS = [
     '("chimeric antigen receptor"[tiab] OR "CAR-T"[tiab])',
