@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CGT Clinical LLM — 细胞与基因治疗转化医学垂直模型</title>
+<meta name="description" content="面向 IIT、preIND/IND 申报与临床方案设计的细胞与基因治疗领域语言模型。公有领域与 CC-BY 语料，可溯源检索架构。">
+<style>
+  :root{--ink:#14181f;--mut:#5b6572;--line:#e3e7ec;--acc:#0b5d8f;--bg:#fff;--soft:#f6f8fa}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{border-bottom:1px solid var(--line);padding:56px 0 40px;margin-bottom:8px}
+  h1{font-size:30px;line-height:1.3;margin:0 0 10px;letter-spacing:-.01em}
+  .sub{color:var(--mut);font-size:17px;margin:0}
+  .tag{display:inline-block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);border:1px solid var(--acc);border-radius:3px;padding:2px 8px;margin-bottom:16px}
+  h2{font-size:20px;margin:44px 0 14px;padding-top:20px;border-top:1px solid var(--line)}
+  h3{font-size:16px;margin:26px 0 8px}
+  p{margin:0 0 14px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:12px 0 18px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--soft);font-weight:600;white-space:nowrap}
+  code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:13.5px}
+  ul{margin:0 0 14px;padding-left:22px}
+  li{margin-bottom:6px}
+  .note{background:var(--soft);border-left:3px solid var(--acc);padding:14px 18px;margin:18px 0;font-size:14.5px}
+  .warn{background:#fff8f0;border-left:3px solid #c2680a;padding:14px 18px;margin:18px 0;font-size:14.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:18px 0}
+  .stat{border:1px solid var(--line);border-radius:5px;padding:14px 16px}
+  .stat b{display:block;font-size:24px;line-height:1.2;color:var(--acc);font-variant-numeric:tabular-nums}
+  .stat span{font-size:13px;color:var(--mut)}
+  .done::before{content:"已完成";color:#1a7f4b;font-size:12.5px;border:1px solid #1a7f4b;border-radius:3px;padding:1px 6px;margin-right:8px}
+  .wip::before{content:"进行中";color:#c2680a;font-size:12.5px;border:1px solid #c2680a;border-radius:3px;padding:1px 6px;margin-right:8px}
+  .todo::before{content:"未开始";color:var(--mut);font-size:12.5px;border:1px solid var(--mut);border-radius:3px;padding:1px 6px;margin-right:8px}
+  footer{border-top:1px solid var(--line);margin-top:56px;padding:26px 0 60px;color:var(--mut);font-size:13.5px}
+  a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <span class="tag">项目代号 · 内测阶段</span>
+  <h1>CGT Clinical LLM</h1>
+  <p class="sub">细胞与基因治疗转化医学垂直语言模型 — 面向 IIT、preIND/IND 申报与临床方案设计</p>
+</div></header>
+
+<div class="wrap">
+
+<div class="warn">
+  <strong>正式名称待定。</strong>候选名涉及在世医学家姓名，须取得本人或所属机构书面授权后方可对外使用。授权落定前，本项目对外一律使用中性代号。
+</div>
+
+<h2>定位</h2>
+<p>通用医疗大模型在细胞与基因治疗、孤儿药认定、早期临床设计这些细分语域上知识稀薄且易产生幻觉。根因不在对齐不足，而在基座语言模型没有这套语域的 token 分布——监管话术、终点设计、CMC 工艺描述是一套独立语域，几千条指令样本改不动模型对它的先验。</p>
+<p>本项目因此采用<strong>先领域持续预训练、后指令对齐</strong>的顺序，服务对象为 PI、临床研究者、CRO、转化医学团队与药监申报人员。</p>
+
+<h2>架构：三层分离</h2>
+<p>能力进权重，事实进检索，数据库进工具。</p>
+<table>
+<tr><th>层</th><th>内容</th><th>为什么在这一层</th></tr>
+<tr><td><b>参数层</b><br>CPT + SFT</td><td>监管话术、终点设计、统计方案、入排标准生成、SAE 分级推理</td><td>这些是语言与推理模式，必须进权重</td></tr>
+<tr><td><b>检索层</b><br>RAG，带条文级引用</td><td>各国法规条文、指南原文、药品说明书、流行病学统计</td><td>这些每月在变。写进权重等于固化一个会过期的版本，且无法溯源——申报文书必须能引用到出处</td></tr>
+<tr><td><b>工具层</b><br>函数调用</td><td>ClinVar、ClinGen、Open Targets、ChEMBL、FDA 药品标签、ClinicalTrials.gov、PubMed/PMC</td><td>模型要学的是何时调用与如何解读返回值，不是把数据库背下来</td></tr>
+</table>
+
+<h2>已建成的语料资产</h2>
+<div class="grid">
+  <div class="stat"><b>6,267</b><span>CGT 干预性试验</span></div>
+  <div class="stat"><b>74,675</b><span>纳入标准条目</span></div>
+  <div class="stat"><b>75,566</b><span>排除标准条目</span></div>
+  <div class="stat"><b>9,984</b><span>安全性段落</span></div>
+  <div class="stat"><b>707</b><span>FDA 法规文档索引</span></div>
+  <div class="stat"><b>54.8%</b><span>PMC 文献 CC-BY 占比</span></div>
+</div>
+<p>试验语料覆盖 11 个模态：CAR-T（2,489）、MSC（1,737）、基因治疗（1,230）、RNA 药物（333）、TIL（260）、溶瘤病毒（200）、CAR-NK（156）、通用型/异体 CAR（152）、TCR-T（137）、体内 CAR（44）、环肽（9）。其中 62% 为 I 期或早期 I 期——正是 IIT 与 preIND 的语域。</p>
+
+<h2>数据来源与许可</h2>
+<div class="note">
+  <strong>全部训练语料均为公有领域或允许商业再利用的许可。</strong>本项目不使用、也不接受从 Claude、ChatGPT/Codex 等商业模型蒸馏产生的数据——相关服务条款禁止用其输出训练竞争性模型，而一个对外收费的医疗申报产品不应把这类数据放进来源链条。
+</div>
+<table>
+<tr><th>来源</th><th>内容</th><th>许可</th></tr>
+<tr><td>ClinicalTrials.gov API v2</td><td>6,267 份 CGT 干预性试验</td><td>美国政府作品，公有领域</td></tr>
+<tr><td>PMC Open Access（AWS Open Data）</td><td>CGT 文献全文，仅取 CC-BY / CC0 分区</td><td>CC-BY / CC0</td></tr>
+<tr><td>Federal Register API</td><td>FDA 法规与指南公告索引</td><td>美国政府作品，公有领域</td></tr>
+</table>
+
+<h3>明确不可用的来源</h3>
+<ul>
+  <li><b>ASGCT / AACR 会议摘要</b> — 有版权且会员墙，不入训练，仅在检索层按合理使用引用</li>
+  <li><b>非开放获取期刊综述</b> — CGT 高价值综述多在非 OA 刊</li>
+  <li><b>企业 IND / preIND 内部资料</b> — 商业秘密与合同风险</li>
+  <li><b>CC-BY-NC / ND 系列文献</b> — 本项目为商业用途，已在许可筛选阶段剔除（实测占开放获取文献的 33.4%）</li>
+</ul>
+
+<h3>关于监管指南正文</h3>
+<p>FDA、EMA、NMPA 三家官网均拦截自动化采集（FDA 返回 404；EMA 部署 antibot 模块；NMPA 返回 412 WAF），联邦公报的全文下载亦重定向至其反爬页。这些文件本身公开且无版权障碍，受限的是自动化检索方式。本项目<strong>不绕过此类反爬措施</strong>，指南正文采用人工下载后解析入库的方式获取。</p>
+
+<h2>进度</h2>
+<ul style="list-style:none;padding-left:0">
+  <li class="done">CGT 临床试验结构化语料库</li>
+  <li class="done">PMC 许可分布实测与合规筛选管线</li>
+  <li class="done">FDA 法规文档索引层</li>
+  <li class="wip">CC-BY 全文语料抓取</li>
+  <li class="todo">领域持续预训练</li>
+  <li class="todo">指令对齐与复现式硬评测</li>
+  <li class="todo">可溯源检索层</li>
+</ul>
+<p><strong>模型权重尚未训练。</strong>当前阶段产出为语料与评测资产。</p>
+
+<h2>评测方法</h2>
+<p>不采用主观打分。留出真实试验记录作测试集，考模型能否复现其入排标准与终点设计，按条目层面计算召回与精确率；同时在通科医学基准上检查持续预训练导致的能力退化。</p>
+
+<h2>已知局限</h2>
+<ul>
+  <li><b>环肽模态语料近乎空白</b> — ClinicalTrials.gov 全库仅 9 项环肽试验，该方向只能依赖专利与文献</li>
+  <li><b>统计设计语料稀缺</b> — 仅 8.3% 的试验在公开记录中披露统计方案</li>
+  <li>模型训练是否构成 CC 协议下的「演绎作品」在法律上尚无定论；本项目按最保守口径仅取 CC-BY 与 CC0</li>
+</ul>
+
+<h2>访问</h2>
+<p>推理端点处于<strong>口令内测</strong>阶段，不公开开放。医疗与申报场景下，一个未完成训练、未配置安全层与引用溯源的模型若被公开试用，损伤的是产品信誉，且可能被误当作诊疗或申报建议使用。</p>
+
+<footer>
+  <p><strong>免责声明：</strong>本项目产出为研究与信息参考，不构成医疗建议、诊疗决策或监管申报结论。任何临床与申报决策须由具备资质的专业人员结合完整资料作出。</p>
+  <p>代码与数据管线：<a href="https://github.com/zhu-algorithm/cgt-clinical-llm">github.com/zhu-algorithm/cgt-clinical-llm</a></p>
+</footer>
+
+</div>
+</body>
+</html>
