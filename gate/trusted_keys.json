@@ -1,0 +1,9 @@
+{
+  "_说明": "每个条目都必须由仓库所有者合并 PR 才能加入——这是整条同意链的根。",
+  "demo-agent": {
+    "public_key": "E4cl+WNfuBrx/Lam1vemVakTO2NKI05GZkOElxJCwYg=",
+    "登记日期": "2026-11-01",
+    "授权级别": "T0",
+    "用途": "演示"
+  }
+}
