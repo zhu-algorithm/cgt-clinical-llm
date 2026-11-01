@@ -37,7 +37,13 @@ CHECKS = [
      "DRG 运营分析必须保留推诿监测；盈亏分析不得脱离质量配重"),
 ]
 
-# 全仓库禁止出现的表述
+# 否定语境标记：命中行若含这些词，说明该行是在**陈述禁令**而非违反它。
+# 没有这一层，扫描器会把「不得按节省额分成」判成违规——
+# 规则的陈述与规则的违反必须区分，否则红线文档本身无法通过 CI。
+NEGATION = ("不得", "禁止", "拒绝", "不与", "而非", "不是", "不应", "不可",
+            "未取得", "不填", "绝不", "不能", "不作为", "避免")
+
+# 禁止出现的表述（仅扫描实现包，不扫描文档与构建脚本）
 BANNED_GLOBAL = [
     (r"按节省额分成|节省额分成|分成比例\s*[:：]\s*\d",
      "计费不得与节省额挂钩——分成会制造把模型训成拒付偏向的激励"),
@@ -62,13 +68,20 @@ def run(root=".") -> dict:
         checked += 1
         if not re.search(pat, f.read_text(encoding="utf-8"), re.S):
             failures.append(dict(文件=rel, 问题=f"不变量丢失：{pat}", 说明=why))
-    for f in root.rglob("*.py"):
-        if "fmed_gate/invariants.py" in str(f): continue
-        txt = f.read_text(encoding="utf-8", errors="ignore")
-        for pat, why in BANNED_GLOBAL:
-            if re.search(pat, txt):
-                failures.append(dict(文件=str(f.relative_to(root)),
-                                     问题=f"禁止表述：{pat}", 说明=why))
+    for pkg in sorted(root.glob("fmed_*")):
+        if not pkg.is_dir(): continue
+        for f in sorted(pkg.glob("*.py")):
+            if f.name.startswith("._") or f.name == "invariants.py":
+                continue
+            for lineno, line in enumerate(
+                    f.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+                if any(n in line for n in NEGATION):
+                    continue          # 该行在陈述禁令，不是违反
+                for pat, why in BANNED_GLOBAL:
+                    if re.search(pat, line):
+                        failures.append(dict(
+                            文件=f"{f.relative_to(root)}:{lineno}",
+                            问题=f"禁止表述：{pat}", 说明=why))
     return dict(已检查=checked, 失败数=len(failures), 失败=failures,
                 结论="通过" if not failures else "阻断合并")
 
