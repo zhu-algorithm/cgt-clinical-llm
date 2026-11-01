@@ -1,0 +1,41 @@
+1name: contribution-gate
+2
+3on:
+4  pull_request:
+5    branches: [main]
+6
+7permissions:
+8  contents: read
+9
+10jobs:
+11  gate:
+12    runs-on: ubuntu-latest
+13    steps:
+14      - uses: actions/checkout@v4
+15        with:
+16          fetch-depth: 0          # 需完整历史才能 diff 出改动路径
+17
+18      - uses: actions/setup-python@v5
+19        with:
+20          python-version: "3.12"
+21
+22      - run: pip install pynacl
+23
+24      - name: 受保护不变量
+25        run: python check_invariants.py
+26
+27      - name: 贡献信封受理
+28        run: |
+29          set -euo pipefail
+30          shopt -s nullglob
+31          files=(contributions/*.json)
+32          if [ ${#files[@]} -eq 0 ]; then
+33            echo "本次 PR 无贡献信封，跳过受理检查"
+34            exit 0
+35          fi
+36          changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | tr '\n' ' ')
+37          echo "改动路径：$changed"
+38          for f in "${files[@]}"; do
+39            echo "── $f"
+40            python check_invariants.py "$f" $changed
+41          done
