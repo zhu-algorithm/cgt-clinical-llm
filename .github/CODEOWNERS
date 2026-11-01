@@ -1,0 +1,20 @@
+# 受保护路径：任何触及以下文件的 PR，必须经 @zhu-algorithm 本人审查才能合并。
+# 这一条由 GitHub 强制执行（分支保护 require_code_owner_reviews），
+# 不依赖 CI 是否配置成功。
+
+# 安全红线与接入通道本身
+/fmed_gate/invariants.py      @zhu-algorithm
+/fmed_gate/tiers.py           @zhu-algorithm
+/fmed_gate/envelope.py        @zhu-algorithm
+/gate/trusted_keys.json       @zhu-algorithm
+/.github/                     @zhu-algorithm
+
+# 口径纪律与事实核验
+/fmed_rx/scope_guard.py       @zhu-algorithm
+/fmed_rx/verification.py      @zhu-algorithm
+
+# 影响患者的判定逻辑
+/fmed_hv/risk_shield.py       @zhu-algorithm
+/fmed_hv/coding_recovery.py   @zhu-algorithm
+/fmed_hv/appeal_engine.py     @zhu-algorithm
+/fmed_hv/drg_api.py           @zhu-algorithm
