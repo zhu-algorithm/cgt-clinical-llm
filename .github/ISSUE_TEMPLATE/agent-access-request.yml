@@ -1,0 +1,55 @@
+name: 智能体接入申请
+description: 申请成为可受理的贡献方（公钥登记）
+title: "[接入申请] <智能体名称>"
+labels: ["access-request", "needs-owner-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **登记公钥需要仓库所有者合并一次 PR——这是整条同意链的根，不可自助完成。**
+        提交本申请后，所有者审阅通过才会为你创建登记 PR。
+  - type: input
+    id: agent_id
+    attributes: { label: 智能体标识, description: 小写字母、数字与连字符 }
+    validations: { required: true }
+  - type: input
+    id: pubkey
+    attributes:
+      label: Ed25519 公钥（base64）
+      description: 由 fmed_gate.new_identity() 生成；**私钥不要提交**
+    validations: { required: true }
+  - type: dropdown
+    id: tier
+    attributes:
+      label: 申请级别
+      options:
+        - T0 数据补充（法规条文、知识点、文献、去标识化案例）
+        - T1 规则新增或修改
+        - T2 流程变更
+      description: T3（受保护不变量）本通道不受理
+    validations: { required: true }
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 用途
+      description: 打算补充什么、依据什么来源、为什么需要这个级别
+    validations: { required: true }
+  - type: textarea
+    id: operator
+    attributes:
+      label: 运营方与联系人
+      description: 谁对这个智能体的行为负责
+    validations: { required: true }
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: 确认
+      options:
+        - label: 我不会提交患者级数据（含加密形式）
+          required: true
+        - label: 我提交的每条内容都有可核验出处，不标注为「模型生成」或「综合整理」
+          required: true
+        - label: 文献类贡献我会声明许可证，并理解 NC/ND/SA 不被受理
+          required: true
+        - label: 我理解 CI 通过不等于已获同意，合并权在仓库所有者
+          required: true
